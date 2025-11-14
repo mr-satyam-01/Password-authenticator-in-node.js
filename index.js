@@ -1,7 +1,7 @@
 // here we are making a authentication server using express which has two post request one is
 // signup to get the credentials and save it and another is
 // signin to verify the credentials and generate a token for the browser
-
+// an when you send this token through headers with a get request to "/me" it returns the user details
 const express = require("express");
 const app = express();
 app.use(express.json());
@@ -30,7 +30,7 @@ app.post("/signup", (req, res) => {
         password: password
     })
     res.json({
-        message: "you are signed in"
+        message: "you are signed up"
     })
 })
 
@@ -61,4 +61,24 @@ app.post("/signin", (req, res) => {
     }
 })
 
+app.get("/me", (req, res) => {
+    const token = req.headers.token;
+
+    let realuser = null;
+    for (let i = 0; i < users.length; i++) {
+        if (users[i].token == token) {
+            realuser = users[i]
+        }
+    }
+    if (realuser) {
+        res.json({
+            username: realuser.username,
+            password: realuser.password
+        })
+    } else {
+        res.json({
+            message: "token is invalid"
+        })
+    }
+})
 app.listen(3000);
