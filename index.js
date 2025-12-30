@@ -4,14 +4,15 @@
 // an when you send this token through headers with a get request to "/me" it returns the user details
 const express = require("express");
 const jwt = require("jsonwebtoken");
+const { Next } = require("react-bootstrap/esm/PageItem");
 const JWT_SECRET = "cuebuycpyeberborgf0999"
 const app = express();
 app.use(express.json());
 
 const users = [];
 
-//The generate token is now removed because it is random token which needs to be verified by the database
-//Instead of that we use JWT to generate token so that can be verified by the server itself no need to check in database
+// The generate token is now removed because it is random token which needs to be verified by the database
+// Instead of that we use JWT to generate token so that can be verified by the server itself no need to check in database
 
 app.post("/signup", (req, res) => {
     const username = req.body.username;
@@ -24,6 +25,7 @@ app.post("/signup", (req, res) => {
         message: "you are signed up"
     })
 })
+
 
 app.post("/signin", (req, res) => {
     const username = req.body.username;
@@ -50,15 +52,28 @@ app.post("/signin", (req, res) => {
         })
     }
 })
+// now we are making a authentication middleware that will verify the jwt token and then forward the request to next end point 
+// we can use it multiple times to authenticate by adding it into the end point like " /me, auth, (req, res) "
 
-app.get("/me", (req, res) => {
-    const token = req.headers.token;
-    const Infocheck = jwt.verify(token, JWT_SECRET); //{it spits the username provided while creating the jwt}
-    const username = Infocheck.username;
+function auth(req, res, next){
+  const token = req.headers.token;
+    const Infocheck = jwt.verify(token, JWT_SECRET);
+    req.user = Infocheck;
+    if(Infocheck.username){
+        next();
+    }else{
+        res.json({
+            message: "you are not logged in"
+        })
+    }
+}
 
+
+app.get("/me", auth, (req, res) => {
+    
     let realuser = null;
     for (let i = 0; i < users.length; i++) {
-        if (users[i].username == username) {
+        if (users[i].username == req.user.username) {
             realuser = users[i]
         }
     }
@@ -67,7 +82,7 @@ app.get("/me", (req, res) => {
             username: realuser.username,
             password: realuser.password
         })
-    } else {
+    } else { 
         res.json({
             message: "token is invalid"
         })
