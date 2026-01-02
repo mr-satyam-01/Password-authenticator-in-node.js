@@ -1,0 +1,78 @@
+<html>
+
+<head>
+    <title>Auth website</title>
+</head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/axios.min.js"></script>
+<script>
+    async function signup() {
+        const username = document.getElementById("signup-username").value;
+        const password = document.getElementById("signup-password").value;
+        const response = await axios.post("http://localhost:3000/signup", {
+            username: username
+            , password: password
+        });
+        alert("you are signed up")
+    }
+    async function signin() {
+        const username = document.getElementById("signin-username").value;
+        const password = document.getElementById("signin-password").value;
+        const response = await axios.post("http://localhost:3000/signin", {
+            username: username
+            , password: password
+        });
+
+        localStorage.setItem("token", response.data.message);
+
+        alert("you are signed in")
+    }
+
+    async function me() {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("please signin first");
+            return;
+        }
+        try {
+            const response = await axios.get("http://localhost:3000/me", { headers: { token: token } });
+
+            document.getElementById("information-1").innerText = "Username: " + response.data.username;
+            document.getElementById("information-2").innerText = "Password: " + response.data.password;
+
+        } catch (err) {
+            alert("The token is invalid");
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem("token");
+        document.getElementById("information").innerText = "";
+        alert("logged out");
+    }
+</script>
+
+<body>
+    <div>
+        SignUp
+        <input id="signup-username" type="text" name="username" placeholder="username">
+        <input id="signup-password" type="password" name="password" placeholder="password">
+        <button onclick="signup()">submit</button>
+    </div>
+    <div>
+        SignIn
+        <input id="signin-username" type="text" name="username" placeholder="username">
+        <input id="signin-password" type="password" name="password" placeholder="password">
+        <button onclick="signin()">submit</button>
+    </div>
+    <div>
+        User information:
+        <div id="information-1"> </div>
+        <div id="information-2"></div>
+        <button onclick="me()">My details</button>
+    </div>
+    <div>
+        <button onclick="logout()">logout</button>
+    </div>
+</body>
+
+</html>
